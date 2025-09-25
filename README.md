@@ -52,7 +52,21 @@ npm run dev
 - API available at http://localhost:4000
 - Frontend available at http://localhost:3000
 
-> Tip: Seed ad slots via Prisma Studio or the `/ad-slots` endpoints if you want to override the default client-side configuration.
+### Load demo data
+
+Populate Postgres with realistic ad slots, historical metrics, and AI recommendations so the UI has something to visualize immediately:
+
+```bash
+npm run prisma:seed --workspace backend
+```
+
+Running inside Docker? Execute the same script against the API container:
+
+```bash
+docker-compose run --rm api npm run prisma:seed --workspace backend
+```
+
+The seed wipes existing tables before inserting the curated fixtures, making it safe to re-run whenever you need a fresh dataset.
 
 ### Dockerized stack
 
