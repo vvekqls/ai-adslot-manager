@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbo: false
-  }
+  // Add any custom Next.js configuration options here
 };
 
 export default nextConfig;
