@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { fetchRecommendations, fetchSummaries, triggerRecommendations } from '@/lib/api';
 import { SlotMetricsGrid } from '@/components/SlotMetricsGrid';
 import { RecommendationList } from '@/components/RecommendationList';
+import { StrategyPlayground } from '@/components/StrategyPlayground';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -101,6 +102,14 @@ export default function DashboardPage() {
           {recsLoading && <span className="text-xs text-slate-500">Waiting for guidance…</span>}
         </div>
         <RecommendationList recommendations={recommendations} />
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-slate-900">Interactive strategy lab</h2>
+          <span className="text-xs text-slate-500">Experiment with levers before deploying changes.</span>
+        </div>
+        <StrategyPlayground summaries={summaries} />
       </section>
     </main>
   );
