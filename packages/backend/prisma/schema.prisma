@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Placement {
+  aboveFold
+  inline
+  sidebar
+  footer
+}
+
+model AdSlot {
+  id              String    @id @default(uuid())
+  name            String
+  placement       Placement
+  sizes           String[]
+  prebidTimeoutMs Int
+  lazyLoad        Boolean   @default(false)
+  order           Int
+  metrics         Metric[]
+  recommendations Recommendation[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Metric {
+  id           String   @id @default(uuid())
+  slot         AdSlot   @relation(fields: [slotId], references: [id])
+  slotId       String
+  cls          Float
+  lcp          Float
+  fid          Float
+  tbt          Float
+  adLoadTime   Float
+  timeoutRate  Float
+  viewability  Float
+  timestamp    DateTime @default(now())
+}
+
+model Recommendation {
+  id         String   @id @default(uuid())
+  slot       AdSlot   @relation(fields: [slotId], references: [id])
+  slotId     String
+  action     String
+  rationale  String
+  priority   String
+  createdAt  DateTime @default(now())
+}

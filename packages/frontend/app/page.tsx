@@ -1,0 +1,230 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Script from 'next/script';
+import { useQuery } from '@tanstack/react-query';
+import { AdSlot } from '@/components/AdSlot';
+import { CustomSlotLab } from '@/components/CustomSlotLab';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { AdSlotConfig } from '@/lib/api';
+import { fetchAdSlots } from '@/lib/api';
+
+const placementLabels: Record<AdSlotConfig['placement'], string> = {
+  aboveFold: 'Above the fold',
+  inline: 'Inline',
+  sidebar: 'Sidebar',
+  footer: 'Footer'
+};
+
+export default function ArticlePage() {
+  const [sandboxSlots, setSandboxSlots] = useState<AdSlotConfig[]>([]);
+
+  const {
+    data: slots = [],
+    isLoading,
+    isError
+  } = useQuery({ queryKey: ['adSlots'], queryFn: fetchAdSlots, staleTime: 30_000 });
+
+  const heroSlot = slots.find((slot) => slot.placement === 'aboveFold');
+  const inlineSlots = slots.filter((slot) => slot.placement === 'inline');
+  const sidebarSlots = slots.filter((slot) => slot.placement === 'sidebar');
+  const footerSlots = slots.filter((slot) => slot.placement === 'footer');
+
+  const handleSandboxCreate = (slot: AdSlotConfig) => {
+    setSandboxSlots((previous) => [...previous, slot]);
+  };
+
+  const handleSandboxRemove = (slotId: string) => {
+    setSandboxSlots((previous) => previous.filter((slot) => slot.id !== slotId));
+  };
+
+  return (
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-12 px-4 py-10 lg:flex-row">
+      <Script
+        src="https://cdn.jsdelivr.net/npm/prebid.js@9.5.0/dist/not-for-prod/prebid.js"
+        strategy="lazyOnload"
+      />
+      <Script src="/prebid-mock-adapter.js" strategy="lazyOnload" />
+
+      <article className="flex-1 space-y-8">
+        <header className="space-y-4">
+          <p className="text-sm uppercase tracking-wide text-emerald-600">AdOps Intelligence</p>
+          <h1 className="text-4xl font-semibold text-slate-900">
+            AI-driven monetization tactics that respect reader experience
+          </h1>
+          <p className="text-lg text-slate-600">
+            This interactive article demonstrates how an AI-first ad stack can orchestrate Prebid.js,
+            performance telemetry, and intelligent recommendations to serve better ads.
+          </p>
+          <div className="text-sm text-slate-500">
+            Curious about the analytics layer? Visit the{' '}
+            <Link href="/dashboard" className="font-medium text-emerald-600 underline">
+              real-time dashboard
+            </Link>
+            .
+          </div>
+        </header>
+
+        {isLoading && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading inventory…</CardTitle>
+              <CardDescription>Fetching live ad slots from the optimization API.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-40 animate-pulse rounded-lg bg-slate-200" />
+            </CardContent>
+          </Card>
+        )}
+
+        {isError && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Ad inventory unavailable</CardTitle>
+              <CardDescription>
+                We couldn&apos;t fetch slot definitions from the backend. Please verify the API is running.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {heroSlot && !isLoading && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Featured Sponsorship</CardTitle>
+              <CardDescription>
+                Reserved space prevents layout shift while Prebid negotiates the best buyer.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdSlot config={heroSlot} />
+            </CardContent>
+          </Card>
+        )}
+
+        <section className="prose prose-slate max-w-none">
+          <p>
+            Modern publishers balance monetization with performance. Every extra millisecond of ad load
+            time risks reader churn, yet aggressive optimizations can slash revenue. An AI-optimized ad
+            stack bridges the gap by pairing fast telemetry with adaptive controls.
+          </p>
+          <p>
+            The system below instruments Core Web Vitals, ad latency, timeouts, and viewability while the
+            mock Prebid bidder fills slots. Metrics flow to a Node.js analytics API that powers an
+            explainable rules engine. The result is human-friendly guidance that teams can trust.
+          </p>
+        </section>
+
+        {!isLoading && !isError &&
+          inlineSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>
+                  Lazy loading keeps cumulative layout shift near zero even for below-the-fold units.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
+
+        <section className="prose prose-slate max-w-none">
+          <h2>Operational transparency</h2>
+          <p>
+            All ad interactions are captured with IntersectionObserver-driven viewability estimates, so ad
+            ops teams can trace why recommendations were made. The rules engine inspects each slot&apos;s
+            performance and suggests adjustments like reordering slow units or relaxing Prebid timeouts.
+          </p>
+        </section>
+
+        {!isLoading && !isError &&
+          footerSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>Footer inventory ready when readers reach the finish line.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
+
+        {sandboxSlots.length > 0 && (
+          <section className="space-y-6">
+            <h2 className="text-2xl font-semibold text-slate-900">Sandbox previews</h2>
+            <p className="text-slate-600">
+              The slots you launch from the sandbox render below. Each preview streams telemetry to the backend so
+              you can contrast experiments with production inventory.
+            </p>
+            {sandboxSlots.map((slot) => {
+              const sizeLabel = slot.sizes.map((size) => `${size.width}×${size.height}`).join(', ');
+              return (
+                <Card key={slot.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle>{slot.name}</CardTitle>
+                        <CardDescription>
+                          {placementLabels[slot.placement]} • {sizeLabel} • Timeout {slot.prebidTimeoutMs}ms •{' '}
+                          {slot.lazyLoad ? 'Lazy load on' : 'Eager load'}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="text-xs"
+                        onClick={() => handleSandboxRemove(slot.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <AdSlot config={slot} />
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </section>
+        )}
+      </article>
+
+      <aside className="sticky top-8 flex h-fit w-full max-w-sm flex-col gap-6">
+        <CustomSlotLab onCreate={handleSandboxCreate} />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Optimization Tips</CardTitle>
+            <CardDescription>
+              This module summarizes the kinds of insights generated by the backend rules engine.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600">
+            <p>• Reorder latency-prone slots further down the page.</p>
+            <p>• Relax Prebid timeouts when bidders show value.</p>
+            <p>• Enable lazy loading for low-viewability placements.</p>
+            <p>• Audit creatives with elevated layout shift.</p>
+          </CardContent>
+        </Card>
+
+        {!isLoading && !isError &&
+          sidebarSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>High-impact inventory anchored beside the reading flow.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
+      </aside>
+    </main>
+  );
+}
