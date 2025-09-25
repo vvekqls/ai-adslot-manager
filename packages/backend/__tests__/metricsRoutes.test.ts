@@ -5,6 +5,7 @@ import { metricsRouter } from '../src/routes/metrics.js';
 import { getAdSlotById } from '../src/services/adSlotService.js';
 import { recordMetric } from '../src/services/metricsService.js';
 import { generateRecommendations } from '../src/services/recommendationService.js';
+import { ingestSandboxMetric } from '../src/services/sandboxMetricsService.js';
 
 jest.mock('../src/services/adSlotService.js', () => ({
   getAdSlotById: jest.fn()
@@ -16,6 +17,22 @@ jest.mock('../src/services/metricsService.js', () => ({
 
 jest.mock('../src/services/recommendationService.js', () => ({
   generateRecommendations: jest.fn()
+}));
+
+jest.mock('../src/services/sandboxMetricsService.js', () => ({
+  ingestSandboxMetric: jest.fn(() => ({
+    slotId: 'sandbox-12345',
+    avgCls: 0.02,
+    avgLcp: 2100,
+    avgFid: 15,
+    avgTbt: 50,
+    avgAdLoadTime: 1600,
+    avgTimeoutRate: 1,
+    avgViewability: 0.6,
+    samples: 1,
+    origin: 'sandbox',
+    performanceScore: 55
+  }))
 }));
 
 const createApp = () => {
@@ -67,6 +84,8 @@ describe('metricsRouter', () => {
     expect(response.status).toBe(202);
     expect(recordMetric).not.toHaveBeenCalled();
     expect(generateRecommendations).not.toHaveBeenCalled();
+    expect(ingestSandboxMetric).toHaveBeenCalledTimes(1);
+    expect(response.body.summary.performanceScore).toBe(55);
   });
 
   it('rejects metrics for unknown slots', async () => {

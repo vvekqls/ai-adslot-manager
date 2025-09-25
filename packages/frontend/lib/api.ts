@@ -36,6 +36,8 @@ export type SlotSummary = {
   avgTimeoutRate: number;
   avgViewability: number;
   samples: number;
+  origin: 'catalog' | 'sandbox';
+  performanceScore: number;
 };
 
 export type Recommendation = {

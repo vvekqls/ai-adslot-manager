@@ -19,7 +19,9 @@ describe('SlotMetricsGrid', () => {
         avgAdLoadTime: 1500,
         avgTimeoutRate: 0.03,
         avgViewability: 0.7,
-        samples: 4
+        samples: 4,
+        origin: 'catalog',
+        performanceScore: 88
       }
     ];
 
@@ -28,5 +30,29 @@ describe('SlotMetricsGrid', () => {
     expect(screen.getByText(/slot-123/i)).toBeInTheDocument();
     expect(screen.getByText(/1500 ms/i)).toBeInTheDocument();
     expect(screen.getByText(/70%/i)).toBeInTheDocument();
+    expect(screen.getByText(/Score 88/i)).toBeInTheDocument();
+  });
+
+  it('highlights sandbox summaries', () => {
+    const summaries: SlotSummary[] = [
+      {
+        slotId: 'sandbox-demo',
+        avgCls: 0.05,
+        avgLcp: 2300,
+        avgFid: 14,
+        avgTbt: 90,
+        avgAdLoadTime: 1800,
+        avgTimeoutRate: 0.25,
+        avgViewability: 0.62,
+        samples: 3,
+        origin: 'sandbox',
+        performanceScore: 72
+      }
+    ];
+
+    render(<SlotMetricsGrid summaries={summaries} />);
+
+    expect(screen.getByText(/sandbox-demo/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sandbox/i)).toBeInTheDocument();
   });
 });

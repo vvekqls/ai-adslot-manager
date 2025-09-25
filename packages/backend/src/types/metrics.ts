@@ -24,3 +24,17 @@ export const metricPayloadSchema = z.object({
 });
 
 export type MetricPayload = z.infer<typeof metricPayloadSchema>;
+
+export type SlotMetricSummary = {
+  slotId: string;
+  avgCls: number;
+  avgLcp: number;
+  avgFid: number;
+  avgTbt: number;
+  avgAdLoadTime: number;
+  avgTimeoutRate: number;
+  avgViewability: number;
+  samples: number;
+  origin: 'catalog' | 'sandbox';
+  performanceScore: number;
+};

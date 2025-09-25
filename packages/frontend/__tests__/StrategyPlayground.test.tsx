@@ -12,7 +12,9 @@ const summaries: SlotSummary[] = [
     avgAdLoadTime: 1500,
     avgTimeoutRate: 0.18,
     avgViewability: 0.72,
-    samples: 42
+    samples: 42,
+    origin: 'catalog',
+    performanceScore: 82
   },
   {
     slotId: 'inline-mid',
@@ -23,7 +25,9 @@ const summaries: SlotSummary[] = [
     avgAdLoadTime: 1900,
     avgTimeoutRate: 0.3,
     avgViewability: 0.54,
-    samples: 37
+    samples: 37,
+    origin: 'catalog',
+    performanceScore: 68
   }
 ];
 

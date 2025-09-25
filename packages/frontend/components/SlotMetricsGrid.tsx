@@ -1,6 +1,7 @@
 import type { SlotSummary } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { MetricBar } from './MetricBar';
+import { Badge } from './ui/badge';
 
 const metricDescriptors = [
   { key: 'avgAdLoadTime', label: 'Ad Load Time', type: 'time', max: 4000 },
@@ -29,13 +30,23 @@ export const SlotMetricsGrid = ({ summaries }: SlotMetricsGridProps) => {
     );
   }
 
+  const orderedSummaries = [...summaries].sort((a, b) => b.performanceScore - a.performanceScore);
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {summaries.map((summary) => (
+      {orderedSummaries.map((summary) => (
         <Card key={summary.slotId}>
           <CardHeader>
-            <CardTitle>{summary.slotId}</CardTitle>
-            <CardDescription>{summary.samples} samples aggregated</CardDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-900">{summary.slotId}</CardTitle>
+                <CardDescription>{summary.samples} samples aggregated</CardDescription>
+              </div>
+              <div className="flex flex-col items-end gap-2 text-right">
+                {summary.origin === 'sandbox' && <Badge variant="secondary">Sandbox</Badge>}
+                <span className="text-xs font-semibold text-slate-600">Score {summary.performanceScore}</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {metricDescriptors.map((metric) => (

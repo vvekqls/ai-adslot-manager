@@ -1,6 +1,10 @@
 import { prisma } from '../src/prismaClient.js';
 import { getSlotMetricsSummary } from '../src/services/metricsService.js';
 
+jest.mock('../src/services/sandboxMetricsService.js', () => ({
+  getSandboxSummaries: jest.fn(() => [])
+}));
+
 describe('metricsService', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -34,7 +38,9 @@ describe('metricsService', () => {
         avgAdLoadTime: 1500,
         avgTimeoutRate: 0.05,
         avgViewability: 0.7,
-        samples: 5
+        samples: 5,
+        origin: 'catalog',
+        performanceScore: 86
       }
     ]);
   });

@@ -1,17 +1,7 @@
-import { MetricPayload } from '../types/metrics.js';
+import { MetricPayload, SlotMetricSummary } from '../types/metrics.js';
 import { prisma } from '../prismaClient.js';
-
-export type SlotMetricSummary = {
-  slotId: string;
-  avgCls: number;
-  avgLcp: number;
-  avgFid: number;
-  avgTbt: number;
-  avgAdLoadTime: number;
-  avgTimeoutRate: number;
-  avgViewability: number;
-  samples: number;
-};
+import { computePerformanceScore } from './metricScoring.js';
+import { getSandboxSummaries } from './sandboxMetricsService.js';
 
 export const recordMetric = async (payload: MetricPayload) => {
   const metric = await prisma.metric.create({
@@ -48,15 +38,26 @@ export const getSlotMetricsSummary = async (): Promise<SlotMetricSummary[]> => {
     }
   });
 
-  return metrics.map((metric) => ({
-    slotId: metric.slotId,
-    avgCls: metric._avg.cls ?? 0,
-    avgLcp: metric._avg.lcp ?? 0,
-    avgFid: metric._avg.fid ?? 0,
-    avgTbt: metric._avg.tbt ?? 0,
-    avgAdLoadTime: metric._avg.adLoadTime ?? 0,
-    avgTimeoutRate: metric._avg.timeoutRate ?? 0,
-    avgViewability: metric._avg.viewability ?? 0,
-    samples: metric._count.slotId
-  }));
+  const catalogSummaries = metrics.map<SlotMetricSummary>((metric) => {
+    const summary: SlotMetricSummary = {
+      slotId: metric.slotId,
+      avgCls: metric._avg.cls ?? 0,
+      avgLcp: metric._avg.lcp ?? 0,
+      avgFid: metric._avg.fid ?? 0,
+      avgTbt: metric._avg.tbt ?? 0,
+      avgAdLoadTime: metric._avg.adLoadTime ?? 0,
+      avgTimeoutRate: metric._avg.timeoutRate ?? 0,
+      avgViewability: metric._avg.viewability ?? 0,
+      samples: metric._count.slotId,
+      origin: 'catalog',
+      performanceScore: 0
+    };
+
+    summary.performanceScore = computePerformanceScore(summary);
+    return summary;
+  });
+
+  const sandboxSummaries = getSandboxSummaries();
+
+  return [...catalogSummaries, ...sandboxSummaries];
 };
