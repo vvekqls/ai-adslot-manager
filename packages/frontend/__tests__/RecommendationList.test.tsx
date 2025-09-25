@@ -14,7 +14,8 @@ describe('RecommendationList', () => {
         slotId: 'slot-1',
         action: 'Increase timeout by 200ms.',
         rationale: 'Timeout rate at 30% exceeds threshold.',
-        priority: 'high'
+        priority: 'high',
+        origin: 'sandbox'
       }
     ];
 
@@ -22,5 +23,6 @@ describe('RecommendationList', () => {
 
     expect(screen.getByText(/slot-1/i)).toBeInTheDocument();
     expect(screen.getByText(/Increase timeout/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sandbox/i)).toBeInTheDocument();
   });
 });

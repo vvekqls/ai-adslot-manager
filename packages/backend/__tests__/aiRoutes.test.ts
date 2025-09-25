@@ -28,7 +28,8 @@ describe('AI routes', () => {
         slotId: 'slot-1',
         action: 'Keep hero slot prioritized',
         rationale: 'Hero slot is fast and highly viewable.',
-        priority: 'medium'
+        priority: 'medium',
+        origin: 'catalog'
       }
     ]);
 
@@ -46,7 +47,8 @@ describe('AI routes', () => {
         slotId: 'slot-2',
         action: 'Extend Prebid timeout',
         rationale: 'Bids are timing out; allow additional auction time.',
-        priority: 'high'
+        priority: 'high',
+        origin: 'catalog'
       }
     ]);
 
@@ -65,7 +67,8 @@ describe('AI routes', () => {
         slotId: 'slot-3',
         action: 'Lazy-load below-the-fold units',
         rationale: 'Improve LCP by deferring offscreen ads.',
-        priority: 'low'
+        priority: 'low',
+        origin: 'catalog'
       }
     ]);
 

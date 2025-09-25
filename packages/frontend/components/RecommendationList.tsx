@@ -31,8 +31,15 @@ export const RecommendationList = ({ recommendations }: RecommendationListProps)
       {recommendations.map((recommendation, index) => (
         <Card key={`${recommendation.slotId}-${index}`}>
           <CardHeader className="flex flex-row items-start justify-between gap-3">
-            <div>
-              <CardTitle className="text-base">Slot {recommendation.slotId}</CardTitle>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">Slot {recommendation.slotId}</CardTitle>
+                {recommendation.origin === 'sandbox' && (
+                  <Badge variant="outline" className="uppercase tracking-wide">
+                    Sandbox
+                  </Badge>
+                )}
+              </div>
               <CardDescription>{recommendation.rationale}</CardDescription>
             </div>
             <Badge variant={priorityVariant[recommendation.priority]}>{recommendation.priority}</Badge>

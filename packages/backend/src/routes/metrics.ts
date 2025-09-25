@@ -23,6 +23,11 @@ metricsRouter.post('/', async (req, res) => {
       logger.info(
         `Recorded sandbox metric for ${slotId}; keeping in-memory aggregates available for dashboard previews.`
       );
+      void generateRecommendations().catch((error) => {
+        logger.error(
+          `Failed to refresh AI recommendations after sandbox metric ingestion: ${(error as Error).message}`
+        );
+      });
       return res
         .status(202)
         .json({ message: 'Sandbox metric captured for dashboard previews.', summary });

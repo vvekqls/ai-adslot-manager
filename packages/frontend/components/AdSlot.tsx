@@ -31,7 +31,7 @@ export const AdSlot = ({ config }: AdSlotProps) => {
     if (!container) return;
 
     let isCancelled = false;
-    const collector = createMetricsCollector(config.id, (payload) => {
+    const collector = createMetricsCollector(config, (payload) => {
       mutation.mutate(payload);
     });
     const detachViewability = collector.attachViewabilityObserver(container);

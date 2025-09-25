@@ -1,6 +1,7 @@
 import {
   ingestSandboxMetric,
   getSandboxSummaries,
+  getSandboxAdSlots,
   resetSandboxMetrics
 } from '../src/services/sandboxMetricsService.js';
 
@@ -18,7 +19,15 @@ describe('sandboxMetricsService', () => {
       tbt: 120,
       adLoadTime: 2100,
       timeoutRate: 0.2,
-      viewability: 0.65
+      viewability: 0.65,
+      sandboxConfig: {
+        name: 'Sandbox Inline',
+        placement: 'inline',
+        sizes: [{ width: 300, height: 250 }],
+        prebidTimeoutMs: 800,
+        lazyLoad: true,
+        order: 999
+      }
     });
 
     ingestSandboxMetric({
@@ -29,7 +38,15 @@ describe('sandboxMetricsService', () => {
       tbt: 90,
       adLoadTime: 1800,
       timeoutRate: 0.15,
-      viewability: 0.68
+      viewability: 0.68,
+      sandboxConfig: {
+        name: 'Sandbox Inline',
+        placement: 'inline',
+        sizes: [{ width: 300, height: 250 }],
+        prebidTimeoutMs: 800,
+        lazyLoad: true,
+        order: 999
+      }
     });
 
     const summaries = getSandboxSummaries();
@@ -41,5 +58,18 @@ describe('sandboxMetricsService', () => {
     expect(summary.origin).toBe('sandbox');
     expect(summary.performanceScore).toBeGreaterThan(0);
     expect(summary.performanceScore).toBeLessThanOrEqual(100);
+
+    const sandboxSlots = getSandboxAdSlots();
+    expect(sandboxSlots).toEqual([
+      {
+        id: 'sandbox-1',
+        name: 'Sandbox Inline',
+        placement: 'inline',
+        sizes: [{ width: 300, height: 250 }],
+        prebidTimeoutMs: 800,
+        lazyLoad: true,
+        order: 999
+      }
+    ]);
   });
 });

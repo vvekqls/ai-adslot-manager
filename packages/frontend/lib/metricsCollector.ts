@@ -1,7 +1,7 @@
 'use client';
 
 import { onCLS, onFID, onLCP } from 'web-vitals';
-import type { MetricPayload } from './api';
+import type { AdSlotConfig, MetricPayload } from './api';
 
 type Collector = {
   report: (payload: { timedOut: boolean; viewableRatio: number }) => void;
@@ -9,19 +9,13 @@ type Collector = {
 };
 
 export const createMetricsCollector = (
-  slotId: string,
+  slot: AdSlotConfig,
   onSubmit: (payload: MetricPayload) => void
 ): Collector => {
-  const metrics: MetricPayload = {
-    slotId,
-    cls: 0,
-    lcp: 0,
-    fid: 0,
-    tbt: 0,
-    adLoadTime: 0,
-    timeoutRate: 0,
-    viewability: 0
-  };
+  let cls = 0;
+  let lcp = 0;
+  let fid = 0;
+  let tbt = 0;
 
   let longTaskObserver: PerformanceObserver | null = null;
   let viewabilityObserver: IntersectionObserver | null = null;
@@ -29,22 +23,22 @@ export const createMetricsCollector = (
   const navigationStart = performance.now();
 
   onCLS((entry) => {
-    metrics.cls = Number(entry.value.toFixed(3));
+    cls = Number(entry.value.toFixed(3));
   });
 
   onLCP((entry) => {
-    metrics.lcp = Number(entry.value);
+    lcp = Number(entry.value);
   });
 
   onFID((entry) => {
-    metrics.fid = Number(entry.value);
+    fid = Number(entry.value);
   });
 
   if ('PerformanceObserver' in window) {
     longTaskObserver = new PerformanceObserver((list) => {
       const longTasks = list.getEntries();
       const totalBlockingTime = longTasks.reduce((acc, task) => acc + (task.duration - 50), 0);
-      metrics.tbt = Number(totalBlockingTime > 0 ? totalBlockingTime.toFixed(2) : 0);
+      tbt = Number(totalBlockingTime > 0 ? totalBlockingTime.toFixed(2) : 0);
     });
 
     try {
@@ -77,13 +71,31 @@ export const createMetricsCollector = (
   };
 
   const report = ({ timedOut, viewableRatio: ratio }: { timedOut: boolean; viewableRatio: number }) => {
-    metrics.adLoadTime = Number((performance.now() - navigationStart).toFixed(2));
-    metrics.timeoutRate = timedOut ? 1 : 0;
-    metrics.viewability = Number(Math.max(viewableRatio, ratio).toFixed(2));
-    metrics.timestamp = new Date().toISOString();
+    const payload: MetricPayload = {
+      slotId: slot.id,
+      cls,
+      lcp,
+      fid,
+      tbt,
+      adLoadTime: Number((performance.now() - navigationStart).toFixed(2)),
+      timeoutRate: timedOut ? 1 : 0,
+      viewability: Number(Math.max(viewableRatio, ratio).toFixed(2)),
+      timestamp: new Date().toISOString()
+    };
+
+    if (slot.id.startsWith('sandbox-')) {
+      payload.sandboxConfig = {
+        name: slot.name,
+        placement: slot.placement,
+        sizes: slot.sizes,
+        prebidTimeoutMs: slot.prebidTimeoutMs,
+        lazyLoad: slot.lazyLoad,
+        order: slot.order
+      };
+    }
 
     cleanup();
-    onSubmit(metrics);
+    onSubmit(payload);
   };
 
   return { report, attachViewabilityObserver };

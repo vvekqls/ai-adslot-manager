@@ -1,5 +1,7 @@
-import { MetricPayload, SlotMetricSummary } from '../types/metrics.js';
+import { MetricPayload, SandboxConfigPayload, SlotMetricSummary } from '../types/metrics.js';
 import { computePerformanceScore } from './metricScoring.js';
+
+type SandboxSlot = SandboxConfigPayload & { id: string };
 
 type SandboxAccumulator = {
   totalCls: number;
@@ -13,6 +15,12 @@ type SandboxAccumulator = {
 };
 
 const sandboxMetrics = new Map<string, SandboxAccumulator>();
+const sandboxSlots = new Map<string, SandboxSlot>();
+
+const registerSandboxSlot = (slotId: string, config?: SandboxConfigPayload) => {
+  if (!config) return;
+  sandboxSlots.set(slotId, { id: slotId, ...config });
+};
 
 const toSummary = (slotId: string, aggregate: SandboxAccumulator): SlotMetricSummary => {
   const summary: SlotMetricSummary = {
@@ -34,6 +42,8 @@ const toSummary = (slotId: string, aggregate: SandboxAccumulator): SlotMetricSum
 };
 
 export const ingestSandboxMetric = (payload: MetricPayload): SlotMetricSummary => {
+  registerSandboxSlot(payload.slotId, payload.sandboxConfig);
+
   const current = sandboxMetrics.get(payload.slotId) ?? {
     totalCls: 0,
     totalLcp: 0,
@@ -62,6 +72,19 @@ export const getSandboxSummaries = (): SlotMetricSummary[] => {
   return Array.from(sandboxMetrics.entries()).map(([slotId, aggregate]) => toSummary(slotId, aggregate));
 };
 
+export const getSandboxAdSlots = () => {
+  return Array.from(sandboxSlots.values()).map((slot) => ({
+    id: slot.id,
+    name: slot.name,
+    placement: slot.placement,
+    sizes: slot.sizes,
+    prebidTimeoutMs: slot.prebidTimeoutMs,
+    lazyLoad: slot.lazyLoad,
+    order: slot.order
+  }));
+};
+
 export const resetSandboxMetrics = () => {
   sandboxMetrics.clear();
+  sandboxSlots.clear();
 };

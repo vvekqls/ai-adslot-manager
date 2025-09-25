@@ -24,6 +24,14 @@ export type MetricPayload = {
   timeoutRate: number;
   viewability: number;
   timestamp?: string;
+  sandboxConfig?: {
+    name: string;
+    placement: AdSlotConfig['placement'];
+    sizes: Array<{ width: number; height: number }>;
+    prebidTimeoutMs: number;
+    lazyLoad: boolean;
+    order: number;
+  };
 };
 
 export type SlotSummary = {
@@ -45,6 +53,7 @@ export type Recommendation = {
   action: string;
   rationale: string;
   priority: 'low' | 'medium' | 'high';
+  origin?: 'catalog' | 'sandbox';
 };
 
 export const submitMetrics = async (payload: MetricPayload) => {

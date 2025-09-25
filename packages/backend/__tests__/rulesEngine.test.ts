@@ -15,7 +15,9 @@ describe('RulesEngine', () => {
       avgAdLoadTime: 3200,
       avgTimeoutRate: 0.25,
       avgViewability: 0.4,
-      samples: 10
+      samples: 10,
+      origin: 'catalog',
+      performanceScore: 42
     }
   ];
 

@@ -45,6 +45,7 @@ const createApp = () => {
 describe('metricsRouter', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    (generateRecommendations as jest.MockedFunction<typeof generateRecommendations>).mockResolvedValue([]);
   });
 
   it('persists metrics for managed ad slots', async () => {
@@ -78,12 +79,20 @@ describe('metricsRouter', () => {
       tbt: 50,
       adLoadTime: 1600,
       timeoutRate: 1,
-      viewability: 0.6
+      viewability: 0.6,
+      sandboxConfig: {
+        name: 'Sandbox Inline',
+        placement: 'inline',
+        sizes: [{ width: 300, height: 250 }],
+        prebidTimeoutMs: 800,
+        lazyLoad: true,
+        order: 999
+      }
     });
 
     expect(response.status).toBe(202);
     expect(recordMetric).not.toHaveBeenCalled();
-    expect(generateRecommendations).not.toHaveBeenCalled();
+    expect(generateRecommendations).toHaveBeenCalledTimes(1);
     expect(ingestSandboxMetric).toHaveBeenCalledTimes(1);
     expect(response.body.summary.performanceScore).toBe(55);
   });
