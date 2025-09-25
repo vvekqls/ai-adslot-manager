@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { submitMetrics } from '@/lib/api';
 import { createMetricsCollector } from '@/lib/metricsCollector';
-import type { AdSlotConfig } from '@/store/useAdStore';
+import type { AdSlotConfig } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 declare global {

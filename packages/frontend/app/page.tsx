@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
+import { useQuery } from '@tanstack/react-query';
 import { AdSlot } from '@/components/AdSlot';
-import { useAdStore } from '@/store/useAdStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchAdSlots } from '@/lib/api';
 
 export default function ArticlePage() {
-  const slots = useAdStore((state) => state.slots);
+  const {
+    data: slots = [],
+    isLoading,
+    isError
+  } = useQuery({ queryKey: ['adSlots'], queryFn: fetchAdSlots, staleTime: 30_000 });
 
   const heroSlot = slots.find((slot) => slot.placement === 'aboveFold');
   const inlineSlots = slots.filter((slot) => slot.placement === 'inline');
@@ -40,7 +45,30 @@ export default function ArticlePage() {
           </div>
         </header>
 
-        {heroSlot && (
+        {isLoading && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading inventory…</CardTitle>
+              <CardDescription>Fetching live ad slots from the optimization API.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-40 animate-pulse rounded-lg bg-slate-200" />
+            </CardContent>
+          </Card>
+        )}
+
+        {isError && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Ad inventory unavailable</CardTitle>
+              <CardDescription>
+                We couldn&apos;t fetch slot definitions from the backend. Please verify the API is running.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {heroSlot && !isLoading && (
           <Card>
             <CardHeader>
               <CardTitle>Featured Sponsorship</CardTitle>
@@ -67,19 +95,20 @@ export default function ArticlePage() {
           </p>
         </section>
 
-        {inlineSlots.map((slot) => (
-          <Card key={slot.id}>
-            <CardHeader>
-              <CardTitle>{slot.name}</CardTitle>
-              <CardDescription>
-                Lazy loading keeps cumulative layout shift near zero even for below-the-fold units.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdSlot config={slot} />
-            </CardContent>
-          </Card>
-        ))}
+        {!isLoading && !isError &&
+          inlineSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>
+                  Lazy loading keeps cumulative layout shift near zero even for below-the-fold units.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
 
         <section className="prose prose-slate max-w-none">
           <h2>Operational transparency</h2>
@@ -107,17 +136,18 @@ export default function ArticlePage() {
           </CardContent>
         </Card>
 
-        {sidebarSlots.map((slot) => (
-          <Card key={slot.id}>
-            <CardHeader>
-              <CardTitle>{slot.name}</CardTitle>
-              <CardDescription>High-impact inventory anchored beside the reading flow.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdSlot config={slot} />
-            </CardContent>
-          </Card>
-        ))}
+        {!isLoading && !isError &&
+          sidebarSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>High-impact inventory anchored beside the reading flow.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
       </aside>
     </main>
   );

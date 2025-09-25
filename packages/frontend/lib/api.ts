@@ -2,6 +2,18 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
+export type AdSlotConfig = {
+  id: string;
+  name: string;
+  placement: 'aboveFold' | 'inline' | 'sidebar' | 'footer';
+  sizes: Array<{ width: number; height: number }>;
+  prebidTimeoutMs: number;
+  lazyLoad: boolean;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type MetricPayload = {
   slotId: string;
   cls: number;
@@ -37,6 +49,11 @@ export const submitMetrics = async (payload: MetricPayload) => {
   await axios.post(`${API_URL}/metrics`, payload, {
     headers: { 'Content-Type': 'application/json' }
   });
+};
+
+export const fetchAdSlots = async (): Promise<AdSlotConfig[]> => {
+  const { data } = await axios.get(`${API_URL}/ad-slots`);
+  return data;
 };
 
 export const fetchSummaries = async (): Promise<SlotSummary[]> => {

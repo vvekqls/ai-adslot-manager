@@ -1,3 +1,4 @@
+import type { AdSlot as PrismaAdSlot } from '@prisma/client';
 import { Router } from 'express';
 import { adSlotSchema } from '../types/adSlot.js';
 import {
@@ -10,9 +11,29 @@ import {
 
 export const adSlotsRouter = Router();
 
+const parseSize = (size: string) => {
+  const [width, height] = size.split('x').map(Number);
+  return {
+    width: Number.isFinite(width) ? width : 0,
+    height: Number.isFinite(height) ? height : 0
+  };
+};
+
+const toResponse = (slot: PrismaAdSlot) => ({
+  id: slot.id,
+  name: slot.name,
+  placement: slot.placement,
+  prebidTimeoutMs: slot.prebidTimeoutMs,
+  lazyLoad: slot.lazyLoad,
+  order: slot.order,
+  sizes: slot.sizes.map(parseSize),
+  createdAt: slot.createdAt,
+  updatedAt: slot.updatedAt
+});
+
 adSlotsRouter.get('/', async (_req, res) => {
   const slots = await listAdSlots();
-  res.json(slots);
+  res.json(slots.map(toResponse));
 });
 
 adSlotsRouter.get('/:id', async (req, res) => {
@@ -20,7 +41,7 @@ adSlotsRouter.get('/:id', async (req, res) => {
   if (!slot) {
     return res.status(404).json({ message: 'Ad slot not found' });
   }
-  res.json(slot);
+  res.json(toResponse(slot));
 });
 
 adSlotsRouter.post('/', async (req, res) => {
@@ -29,7 +50,7 @@ adSlotsRouter.post('/', async (req, res) => {
     return res.status(400).json({ message: 'Invalid payload', errors: parseResult.error.flatten() });
   }
   const slot = await createAdSlot(parseResult.data);
-  res.status(201).json(slot);
+  res.status(201).json(toResponse(slot));
 });
 
 adSlotsRouter.put('/:id', async (req, res) => {
@@ -39,7 +60,7 @@ adSlotsRouter.put('/:id', async (req, res) => {
   }
 
   const slot = await updateAdSlot(req.params.id, parseResult.data);
-  res.json(slot);
+  res.json(toResponse(slot));
 });
 
 adSlotsRouter.delete('/:id', async (req, res) => {
