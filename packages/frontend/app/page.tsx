@@ -1,13 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useQuery } from '@tanstack/react-query';
 import { AdSlot } from '@/components/AdSlot';
+import { CustomSlotLab } from '@/components/CustomSlotLab';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { AdSlotConfig } from '@/lib/api';
 import { fetchAdSlots } from '@/lib/api';
 
+const placementLabels: Record<AdSlotConfig['placement'], string> = {
+  aboveFold: 'Above the fold',
+  inline: 'Inline',
+  sidebar: 'Sidebar',
+  footer: 'Footer'
+};
+
 export default function ArticlePage() {
+  const [sandboxSlots, setSandboxSlots] = useState<AdSlotConfig[]>([]);
+
   const {
     data: slots = [],
     isLoading,
@@ -17,6 +30,15 @@ export default function ArticlePage() {
   const heroSlot = slots.find((slot) => slot.placement === 'aboveFold');
   const inlineSlots = slots.filter((slot) => slot.placement === 'inline');
   const sidebarSlots = slots.filter((slot) => slot.placement === 'sidebar');
+  const footerSlots = slots.filter((slot) => slot.placement === 'footer');
+
+  const handleSandboxCreate = (slot: AdSlotConfig) => {
+    setSandboxSlots((previous) => [...previous, slot]);
+  };
+
+  const handleSandboxRemove = (slotId: string) => {
+    setSandboxSlots((previous) => previous.filter((slot) => slot.id !== slotId));
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-12 px-4 py-10 lg:flex-row">
@@ -118,9 +140,63 @@ export default function ArticlePage() {
             performance and suggests adjustments like reordering slow units or relaxing Prebid timeouts.
           </p>
         </section>
+
+        {!isLoading && !isError &&
+          footerSlots.map((slot) => (
+            <Card key={slot.id}>
+              <CardHeader>
+                <CardTitle>{slot.name}</CardTitle>
+                <CardDescription>Footer inventory ready when readers reach the finish line.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdSlot config={slot} />
+              </CardContent>
+            </Card>
+          ))}
+
+        {sandboxSlots.length > 0 && (
+          <section className="space-y-6">
+            <h2 className="text-2xl font-semibold text-slate-900">Sandbox previews</h2>
+            <p className="text-slate-600">
+              The slots you launch from the sandbox render below. Each preview streams telemetry to the backend so
+              you can contrast experiments with production inventory.
+            </p>
+            {sandboxSlots.map((slot) => {
+              const sizeLabel = slot.sizes.map((size) => `${size.width}×${size.height}`).join(', ');
+              return (
+                <Card key={slot.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle>{slot.name}</CardTitle>
+                        <CardDescription>
+                          {placementLabels[slot.placement]} • {sizeLabel} • Timeout {slot.prebidTimeoutMs}ms •{' '}
+                          {slot.lazyLoad ? 'Lazy load on' : 'Eager load'}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="text-xs"
+                        onClick={() => handleSandboxRemove(slot.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <AdSlot config={slot} />
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </section>
+        )}
       </article>
 
       <aside className="sticky top-8 flex h-fit w-full max-w-sm flex-col gap-6">
+        <CustomSlotLab onCreate={handleSandboxCreate} />
+
         <Card>
           <CardHeader>
             <CardTitle>AI Optimization Tips</CardTitle>
