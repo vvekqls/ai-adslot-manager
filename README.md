@@ -103,12 +103,14 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) installs dependencies, gene
 | `/metrics` | `POST` | Ingest slot metrics payloads (validated via zod). |
 | `/analytics/summary` | `GET` | Returns per-slot aggregates (CLS, LCP, TBT, load time, timeout rate, viewability, sample count). |
 | `/ai/recommend` | `POST` | Executes the rules engine and persists recommendations. |
-| `/ai/recommend` | `GET` | Fetches the latest stored recommendations. |
+| `/ai/recommend` | `GET` | Fetches the latest stored recommendations (auto-regenerates when none exist; pass `?refresh=true` to force a fresh run). |
 | `/ad-slots` | `GET` | List configured ad slots ordered by waterfall priority. |
 | `/ad-slots/:id` | `GET` | Fetch a single slot. |
 | `/ad-slots` | `POST` | Create a new ad slot. |
 | `/ad-slots/:id` | `PUT` | Update ad slot fields. |
 | `/ad-slots/:id` | `DELETE` | Remove an ad slot. |
+
+New metrics ingested via `/metrics` immediately trigger a background refresh of the AI guidance so the dashboard reflects live article interactions without manual intervention.
 
 ## Rules Engine Highlights
 
