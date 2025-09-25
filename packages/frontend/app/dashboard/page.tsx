@@ -11,13 +11,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function DashboardPage() {
   const queryClient = useQueryClient();
 
-  const { data: summaries = [], isLoading: summariesLoading } = useQuery({
+  const {
+    data: summaries = [],
+    isLoading: summariesLoading,
+    isFetching: summariesFetching,
+    refetch: refetchSummaries
+  } = useQuery({
     queryKey: ['summaries'],
     queryFn: fetchSummaries,
     refetchInterval: 60_000
   });
 
-  const { data: recommendations = [], isLoading: recsLoading } = useQuery({
+  const { data: recommendations = [], isLoading: recsLoading, isFetching: recsFetching } = useQuery({
     queryKey: ['recommendations'],
     queryFn: fetchRecommendations,
     refetchInterval: 90_000
@@ -27,8 +32,19 @@ export default function DashboardPage() {
     mutationFn: triggerRecommendations,
     onSuccess: (data) => {
       queryClient.setQueryData(['recommendations'], data);
+    },
+    onSettled: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['recommendations'] })
+        .catch(() => {
+          // noop
+        });
     }
   });
+
+  const handleRefreshSummaries = () => {
+    void refetchSummaries({ cancelRefetch: false });
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-4 py-10">
@@ -43,13 +59,13 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['summaries'] })}
-            disabled={summariesLoading}
+            onClick={handleRefreshSummaries}
+            disabled={summariesLoading || summariesFetching}
           >
-            Refresh metrics
+            {summariesFetching ? 'Refreshing metrics…' : 'Refresh metrics'}
           </Button>
-          <Button onClick={() => recommendationMutation.mutate()} disabled={recommendationMutation.isLoading}>
-            {recommendationMutation.isLoading ? 'Running AI...' : 'Generate recommendations'}
+          <Button onClick={() => recommendationMutation.mutate()} disabled={recommendationMutation.isLoading || recsFetching}>
+            {recommendationMutation.isLoading || recsFetching ? 'Running AI…' : 'Generate recommendations'}
           </Button>
         </div>
       </section>
